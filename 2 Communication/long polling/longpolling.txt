@@ -1,0 +1,46 @@
+index.html- 
+    if we see we have similar kind of html page, which has a mechanism to fetch for give me the data related to the getData.
+    so it is the same fetch call that we have made, we are not going to use interval then how we are going to do we are talk about.
+
+index.js - 
+    now similar kind of thing we have on the server, on the server what we have the first get endpoint will return the same index.html page.
+    we have to write some implementation if i asked for getData, what is going to happen and when i ask for updateData.
+
+    /getData endpoint - 
+        now considering you have some data, so what we are going to do we are going to do, we are going to do compare if the data which we have is not equal to the data we are going to request.
+        so how this will work - most of the cases your client will send any last id or information that is i have now you compare on the server what is the message id you have, if there is the delta between the both the ids, 
+        then you process what you are doing, to make this simple what i going to use? i am going to use simple the message itself istead of generating those message id, so there is some message which is client is having and there is some mesage which are server is basically having.
+
+        so i am going to pick this message from the query probabely, req.query.lastData based on that i am going to do some activity, 
+        so first of all i going to say res.json({ data });
+
+        if my lastData is not equivalent with my current data then i am going to send the new data, if there is no difference between the data then we need to hold the request, so that i will respond to this client after sometime
+        i dont have anything write now to respond to the perticular person or client, which is actually asking me give the data.
+
+        1st i need to hold this request, 2nd i need to use this request in order to response because there may be multiple people who may be creating those connections and basically i need to respond to each of those with respected request, 
+        by default if we dont send the res.json() then it holds the request, now how do i maintain that for this client i need to respond via that way or for that client i need to respond that way, somewhere i need to request and i need to maintain this object 
+        to this request object are respective to each and every request. 
+
+        so i am goint to create womething which is called waitingClientsList, and push the data whenever i am going to get a new data. 
+
+    /updateDate endpoint -
+        first of all wanted to update that data, with req.query.data, so we are not harcoding the data we are going to get it with query param.
+        data = req.query.data;
+
+        now once i get the data with the query param, i need to simply run a loop and in that perticular loop i need to keep on doing some activity to the client. 
+        
+        while (waitClinetList.length > 0) {
+            const client = waitClinetList.pop();
+            client.json({ data });
+        }
+
+index.html - 
+
+    Now somehow we have to send the data from the client also, boss what is the data i have, that data has to be updated so probabely for the first time i dont have any data.
+    so i am going to get the last data in the lastData variable, and i am goint o pass that variable in the query param.
+
+
+now if i run for the first time i will get the initial data, next time as soon as i am getting another data i am asking do you have any other request?
+with the updateData endpoint http://localhost:5011/updateData?data="new data" i am sending the new data, now after updated the data we got the new data.
+
+in this case we have long lived connection to the server, and we are not doing multiple small small interval polling.
