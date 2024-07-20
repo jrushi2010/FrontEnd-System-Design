@@ -1,0 +1,38 @@
+index.js - 
+    we have created two rest enpoint one is for get the intial data, and other is for update the intial data.
+    and then we renderd the index.html fiel using res.sendFile method.
+
+index.html - 
+    we have created a getData function which get the data and render it in the html.
+
+    now if we check localhost:5011/ then we can see the initial data is rendered.
+    now consider we have updated the data on the server, to update the data hit localhost:5011/updateData
+    so if i go and call the updateData api, so what i meant by someone is using our system or someone might have updated the data behind the sceen 
+    your db got updated now if i try to see on the getData api you can see my data is updated, but my ui is steel showing me some old information. 
+    where is the latest notofication that happen where it gone? 
+
+    and we wanted to show the real time data, we want some mechanism where we can do the concurrent polling kind of thing so that we can keep on polling and
+    we can keep on get the data from the server on the real time. 
+
+shortPolling -  
+    now we create a function in the index.html script, in this function we use setInterval the setInterval is used to keep on calling something on the setInterval
+    and inside this function i am going to execute the getData, now i wanted to execute the request getData from the server in every 5 second and do whatever you want to do. 
+
+    now i will restart the server, and relaod my application in the browser and hit localhost:5011/ 
+    so we wait for few second and then we can see the getData request will went and we have the initial data got printed. 
+    now we can see that after sometime another requests went, where the intial data got printed, because there is no change in the initial data. 
+    you wont see anything reflacted in the ui, so it will keep on asking to the server boss do you have new data?
+
+    now consider that someone have called the updatedData localhost:5011/updateData, or someone have updated the data or the activity have added.
+    and then lets see on the browser what happens, so it will make the new request automatically because there is polling going on.
+    and you can see behind the seen your data got updated, so this is how basically a short polling exist.
+
+    Try to understand all this connectins are very short lived, you made a request, you got the response , it is not holded on the server.
+    you keep on request on the certain interval, you get the data, that data may be not be updated, it may be updated depends on.
+
+     Whenever you talk about intervals, 2 things have to taken care on very atter cases which is- 
+        please handle the error handling, what if the data did not get or if there is the issue in the data modification else you will be go into global exception. 
+        else you will throw into the global exception and it can break your application in multiple rim, have proper exception handling
+
+        Whenever you create a setInterval kind of thing for polling purpose, remember you should have a mechanism to clear this interval.
+        on some navigation or user action or your event or the target condition you have to clear your interval.
