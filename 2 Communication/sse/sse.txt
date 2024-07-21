@@ -1,0 +1,50 @@
+index.js -
+    we have a basic server, and we rendered the basic index.html file.
+    and we are going to write the sse logic into the sse get endpoint.
+
+index.html - 
+    on the client we have a id , where i am going to showcase the new data which is getting from the server.
+
+index.js - 
+    on the server, data is going to be long lived and the data is going to be in the event stream, so these are the two informations that
+    i have to be set into the header, how my responses is going to be.
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Cache-Control', 'no-cache');
+
+    now i just wanted to keep on sending some information from the server to the client, how do i do that?
+        res.write('data: welcome to server sent event \n\n');
+
+    now i want something to get the data, probabely i will write some logic to connect to the database, get the updated data from the database 
+    after some ids and what not, that logic will be written over here. 
+    we dont have such logic at the moment, i will simply start a setInterval and after certain interval on the server which is eventually going to be database call, get the data or someone is going to tell me the updated data
+    for simplicity we have some dynamic logic which is keep on changing after some time.
+        const intevalId = setInterval(() => {
+            res.write(`data: Server Time ${new Date().toLocaleDateString()} \n\n`)
+        }, 5000);
+
+index.html -
+    we have something called EventSource() this EventSource make helps to connect to sse endpoint, there is a event streaming happening 
+        const eventSource = new EventSource('/sse');
+    
+    we can read the message directly from this eventSource
+        eventSource.onmessage = (event) => {
+            console.log(event.data);
+            const sseDataRef = document.getElementById('sse-data');
+            sseDataRef.innerHTML += `<p>${event.data}</p>`;
+        }
+
+
+
+Challenges: 
+- Browser Compatibility
+- Connection limit
+- Connection timeout
+- Background tab behaviour 
+- Resource utilization
+- Load Balancer 
+- Sticky connections
+- Proxy Firewall 
+- Testing 
+- BroadCasting 
