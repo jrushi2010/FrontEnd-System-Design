@@ -1,0 +1,96 @@
+so when i write hi and click enter we will get this notification as a hi, now how do i send this hi message to the server so that the other user who are using the same application will get the notification
+ohh there is a hi, withour sending a new request, without reloading a page.
+
+install the socket.io package
+    npm i socket.io
+
+index.js -
+   in first get endpoint we just have sended index.html page,
+
+index.html - 
+    inside index.html what we have? i have created a simple form and a mechanisam that will get the data from the form,
+    and when you click print on the console, that is all basically i have written inside this chat box.
+
+
+index.js - 
+    so sockets work on kind a called on your event name, if i say you hi or if i say you data or if i say you message these are some keywrords or event names which i am sending
+    based on these event name you should decide what need to be done. 
+
+    so first i am going to get a server from socket.io package, 
+        const { Server } = require('socket.io');
+
+    after that i am going to create the new io from this new server,
+        const io = new Server(server);
+    so i am going to pass my expressJs server to the Server, so that it actually create a wrapper on top of it, so any interactivity happen on the server which is http communication basically so it can actually laverage
+
+    now using this io, we wanted to listen on if there is a connection basically created,
+
+
+        io.on('connection', (socket) => {
+            console.log('Connection established');
+
+            socket.on('chat message', (msg) => {
+                console.log('received message', msg);
+                io.emit('chat message', msg);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('User Disconnected!');
+            });
+        });
+
+   i am broadcasting from the client saying that the chat message, and on the server i am listening chat message and again sending back chat message as an event to everyone.
+   so basically chat message is a event name.
+   using emit we are broadcasting the same event name and to actually everyone who is actually connected to the web socket connection.
+
+index.html -
+    how do i laverage the same thing on the client, so if you are using npn,react,angular then you can use dedicated node package.
+    in this case i am going to use cdn basically in order to achieve this. 
+        <script src="/socket.io/socket.io.js"></script>
+
+    now what we need, i simply wnated a similar kind of socket instance which i can create, like we created from the server.
+        const socket = window.io();
+    
+    now using this socket we will do somethig interested over here, once we got the message i wanted to emit this message to everyone.
+        socket.emit('chat message', input.value);
+
+    now we have to understand what happened in this perticular case, we have client and we have server, now client is basically saying i am emmiting a message which is called a chat message
+    it emmited, that has to be heard on the server, so basically we have .on method and in that method we have consoled the output.
+    Once we listen it there will be some other user, so if one user emmit one message server will listen and server is also emiting that same message to the other users who are connected, 
+    now once the server emiteed those message all the client who is connected will get those update.
+
+    Now somewhere like we have way to listen to any chat message which is comming on the server, we have to implement something similar on the client.
+        socket.on('chat message', (msg) => {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+        }); 
+
+
+localhost:5011/
+
+Use Cases- 
+    - Analytics
+    - Financial Trading Dashboard
+    - Online gaming
+    - Collab - any real time editing app 
+
+- WSS(web socket security) 
+- framing
+- 101 switching protocol
+
+Challenges -
+    - Resource usage - each connection is a long connection and if users incereased you have to think for vertical and horizontal scaling.
+    - Connection limits
+    - Sticky sessions - you have to think about how these things work on your load balancer, in case of say suppose you have a client and a server 
+            in between there is a load balancer basically and there are multiple servers that we have, now once a connection connected to a one single server 
+            one tcp connection, load balancer next time should pass this to the same server instead of the different server. 
+            if one user is connected to server1 then all the requests has to go to this same server. 
+    - Load balancer 
+    - Authentication 
+    - Firewall/Proxy
+    - Connection drop
+    - scaling
+    - Testing and Debugging
+    - Backward compatibility 
+    - Resource cleanup
