@@ -1,0 +1,31 @@
+Security Overview
+	- XSS 
+
+	- CSRF - Consider example In this case if you got some mail, where you have to fill 		 some form data, or probably it will give you some offer from some banks 		 basically and you ended you ohh there is a crazy offer and let me click on 		 that, what you ended up doing? you ended up doing some unknowingly making 		 some transaction which you are not intending but ended up doing that. 
+		 or you ended up posting something on behalf of you you don't want, and said 		 I did not post this on social media 
+
+	- Authentication /Authorization
+
+	- Input validation / sanitization 
+	
+	- HTTPS - Secure communication that should be established 
+
+	- Security Headers 
+
+	- IFrame Protection 
+
+	- Dependency Injection
+
+	- Client Storage Security
+
+	- Compliance and regulations
+
+	- SSRF
+
+	- SSJI
+
+	- Feature Flag
+
+	- Subresource Integrity
+
+	- CORS

