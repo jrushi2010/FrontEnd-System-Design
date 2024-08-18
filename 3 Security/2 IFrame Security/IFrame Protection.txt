@@ -1,0 +1,199 @@
+IFrame comes with the lot of power, we see the ads on the page we see many other things which are injected by the IFrame 
+IFrame give you the facility that you have a site running and you wanted to open that site in any other application then you can just inject and you can see sites.
+
+with the wide adaption there are lot of security concerns are comming to the picture example, 
+
+    so we know we have a ifram and a website something as a.com and we wanted to access some part of this may be show some adds and these are comming from some ads.com 
+    so what are the things which can go wrong in this case, consider example because we are dealing with different enviornment 
+    so what if the inner website is able to access the outer website may be content or critical information like credentials 
+    what is ads will able to access any information which is written may be able to temper the look and feel and the content of the main website because ads wanted to take more area. 
+    may be wanted to change any dam thing.
+
+    now in order to ensure that these things work in isolation, consider example like you have google.com and you dont want to open google.com in other website all together.
+
+    so we will talk some vulnerability and mitigation  
+
+    vulnerability - 
+        1) Click Hijacking - 
+            consider you have a application, and you have some details and you have some option to show more or show details.
+            but this is something your website, what if you have a hidden website which is some bank website or some other application 
+            which is some terms of layering on top of some layring on top of it, which is transparent layering and having button exactly at that place on the upper layer 
+            so ultimately if you are clicking it seems like you are clicking on my website but you ended up clicking on may be facebook or something because that was there in some iframe on a different layer and that was not visible to you.
+
+            in such cases people wanted to ensure shall i allow my website to be visible in the IFrame what kind of issues probabely that can create?
+
+        2) Data theft via javascript - 
+            someone can access something via your dom, that it there in the main window, which is you are in a IFrame and i am able to access something which is in a parent window or 
+            i am in a parent window and i am able to access something which is in the child window.
+
+        3) Session and Cookie theft - 
+            what if i am able to access your credentials, your athorization token anything that you have in cookie in either the ways like from the child to parent or parent to child 
+
+
+
+    so to understand all the vulnerability we have created our server and added two server scripts inside the package.json
+
+    so server1 is a parent window and server2 is the child window
+
+    1) Click Hijacking - 
+
+        main website - 
+        http://localhost:5010/example1
+
+        so consider exa we have a parent window, inside the parent window we have a option called click me 
+        now what we want using click me i wanted to show this button is clicked, what if i am clicking on this 
+        i am not able to click actually click me, i am clicking something else may be clicking on create post in facebook 
+        clicking on some bank statement or clicking on some bank account transaction button but how that could happen?
+
+        Think about i have some IFrame window which is on top of it, which is transperant which is not visible to me under the hood i have a button and this is exactly at the same place 
+        and when i click on that it seems like that i click on my website but i am end up clicking on the IFrame website which is vulnerable activity that we are doing
+        that is click hijacking, you clicked on something but that hijacked by some other activity.
+
+        IFrame website - 
+        http://localhost:5011/iframe-website1
+
+        now i wanted to put this website inside main website, so what i am going to do,
+        i go to my main website, and over here i inject my iframe website using iframe.
+
+            <iframe src="http://localhost:5011/iframe-website1"></iframe>
+
+        so i am loading application which on different domain all together 
+        we can see now the iframe is added in the main website
+
+        what if this website alltogether is not visible to me, what if this pay now button is comes over the click me button.
+        what if i clicked on actually play now button, instead of click me, and i am not able to identify.
+
+        and for this we will add a id and add some css so the iframe is not visible and it comes in the different layer.
+            <iframe src="http://localhost:5011/iframe-website1" id="legit-iframe"></iframe>
+
+
+            <style>
+                #legit-iframe {
+                background-color: #ccc;
+                opacity: 0;
+                position: absolute;
+                top: 0px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                }
+            </style>
+
+        now if i reload the main website then we can see that, the iframe is not visible 
+        and if i try to click it seems like i try to do button click which is my button
+        and if click then it click the button which is of iframe button.
+
+        you did a suspecious activity and you didnt realise that you clicked on the iframe website instead of the main website because
+        that website is not visible all together, so that is one problem that we saw.
+
+    2) Data Theft - 
+
+        main website -
+        http://localhost:5010/example2
+
+        so i am just injecting iframe2 website, so i have some cookies which are set in my application
+        which is my main website have some cookie setting logic.
+
+        lets create ifreame website2 also, now problem happens you can see the malicious website inside the main website.
+        iframe website is a malicious website which i injected, ideally i injected the iframe initially i trusted the person or website is correct,
+        then i want to do some activity.
+
+            <iframe src="http://localhost:5011/iframe-website2"></iframe>
+
+
+        but over the period i realise the iframe which i injected started actually receiving or retreving the information from my main website.
+        modern browser have done some saveguarding regarding we do not able to access or leak some information from child to the parent inside such cases, 
+        but still there are old version is still allow that.
+
+        so window.parent will give me the access of the parent window which is the place we have injected my website
+        using that i am accessing the document, and using that i am accessing the innerHTML and using that i can send the api or i can steel the information.
+
+
+    Metigitions - 
+
+        1) if i am owner of the website, and i dont want to inject my website to any where like what if i am the owner of the google.com,
+            and i injected it in the iframe, then it is not possible it gives error.
+
+            http://localhost:5010/example3
+
+            it says you cannot access it because of the cross origin opener policy, which says this website cannot be access from different place all together.
+            it got refused because there are some header which is set to x-Frame-Options which is sameorigin.
+
+            so x-Frame-Options is the old way to handle this, 
+            there are 2 headers that can be set. 
+
+            X-Frame-Options
+            under CSP Header : frame-ancestors 'self'
+
+            
+            app.use((req, res, next) => {
+                res.setHeader(
+                    'Content-Security-Policy',
+                    "frame-ancestors 'none'"
+                )
+
+                next();
+            });
+
+        2) using sandbox - 
+            There are other things also we have to take care of, like click hijacking which probabely could happen
+            data theft can happen, in case of data theft what if someone is able to access something, what if someone is 
+            able to execute javascript in the iframe. we wanted to avoid that.
+
+            i dont want any of the javascript event to be executed in my iframe, so consider example i wanted to allow these website 
+            i dont want to restrict my website to open my be like ads we have, but inside the ads i dont want to execute any javascript 
+            i want only plain html able to come, and people should be able to see that.
+
+            in the example2 what i am going to do, the iframe which i injected i am going to inject using sandbox 
+            so inside sandbox i am going to say allow-same-origin, 
+
+                <iframe src="http://localhost:5011/iframe-website2" sandbox="allow-same-origin"></iframe>
+
+
+            after that we can see that we cant get that alert bos on the page opening because,
+            the script execution in the url is restricted because the allow-script parameter is missing, until and unless
+            you say please allow-script to be executed it is not going to be execute.
+
+                <iframe src="http://localhost:5011/iframe-website2" sandbox="allow-same-origin allow-scripts allow-modals"></iframe>
+
+
+        3) what if there parent try to steel something from the child, there can be such thing probabely can happen 
+            how you can ensure that such thing never ever happen you can have some small code snippen in your child window.
+
+                <script>
+                    if (top != self) {
+                        top.location = self.location;
+                    }
+                </script>
+
+            which says that if my window.top and window.self is not basically same please make my top location to my self location.
+            so that someone is not able to access the thing from my parent to the child window. 
+            now a day in the modern browser this dosent happen, but in older browser it can still happen.
+
+            now a days browser says that if you wanted to do cross communication between iframe and the main use post messaging kind of thing or
+            content messaging kind of thing.  
+
+            now whenever you set the cookie, any of the cookie that you set which you dont wanted to have any theft so how you can set those cookies.
+
+                res.cookie('sessionID', '12345', {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'strict',
+                });
+
+
+                httpOnly: true
+                        you can access things only on the server, you cannot access things using javascript you cant use document.cookie inorder to access these cookie is being set as an httpOnly.
+
+                secure: true
+                        the cookie will be send to the client if it is https, if your application is accessed via http the cookie is not going to be send.
+
+                sameSite: 'strict'
+                        if the application is navigating to the one place to the other place or the api call is going to the other different domain your cookies are not going to be travel, if you have given some restrictions.
+                        
+                         
+
+
+
+
